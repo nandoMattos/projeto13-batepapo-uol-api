@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import Joi from "joi";
 import { MongoClient, ObjectId } from "mongodb";
 import participantSchema from "./schemas/participantSchema.js";
 import messageSchema from "./schemas/messageSchema.js";
