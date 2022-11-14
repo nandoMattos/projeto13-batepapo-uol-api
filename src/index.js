@@ -44,7 +44,7 @@ setInterval(async () => {
     console.log(err);
     res.sendStatus(500);
   }
-}, 60000);
+}, 15000);
 
 app.post("/participants", async (req, res) => {
   const { name } = req.body;
@@ -88,7 +88,12 @@ app.get("/participants", async (req, res) => {
 app.post("/messages", async (req, res) => {
   const { to, text, type } = req.body;
   const { user: username } = req.headers;
-  const message = { from: username, to, text, type };
+  const message = {
+    from: username,
+    to,
+    text,
+    type,
+  };
   const validation = messageSchema.validate(message, { abortEarly: false });
 
   if (validation.error) {
@@ -102,8 +107,9 @@ app.post("/messages", async (req, res) => {
       res.status(422).send({ message: "O usuário não está logado" });
       return;
     }
+    message.time = dayjs().format("hh:mm:ss");
     await messages.insertOne(message);
-    res.send({ message: "Mensagem enviada." });
+    return res.sendStatus(201);
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
@@ -111,8 +117,17 @@ app.post("/messages", async (req, res) => {
 });
 
 app.get("/messages", async (req, res) => {
+  const { limit } = req.query;
   try {
-    res.send(await messages.find().toArray());
+    if (!limit) {
+      res.send(await messages.find().toArray());
+      return;
+    }
+    res.send(
+      (
+        await messages.find().sort({ _id: -1 }).limit(Number(limit)).toArray()
+      ).reverse()
+    );
   } catch (err) {
     console.log(err);
     res.sendStatus(500);
